@@ -32,7 +32,7 @@ var lexNumTests = []struct {
 
 func TestLexnum(t *testing.T) {
 	rand.Seed(time.Now().UnixNano())
-    e := NewEncoder('x', 'o')
+	e := NewEncoder('x', 'o')
 	for _, test := range lexNumTests {
 		s := e.EncodeInt(test.in)
 		t.Logf("%d -> %s", test.in, test.out)
