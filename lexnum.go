@@ -1,3 +1,13 @@
+// package lexnum provides an efficient lexicographic encoding of numbers as
+// described here: http://www.zanopha.com/docs/elen.pdf
+//
+// lexnum allows a developer to encode integers as strings, such that the
+// strings may be lexically sorted, preserving their numerical orderings.
+//
+// e.g., if one were to sort the numbers 0, 1, 2, 9, 10 lexically, we would
+// wind up with 0, 1, 10, 2, 9.  If we knew the maximum value, we could
+// prescribe some zero-padding.  Failing that, we would need a lexicographic
+// encoding of the numbers.  Lexnum attempts to provide this alternative.
 package lexnum
 
 import (
@@ -5,18 +15,29 @@ import (
 	"strconv"
 )
 
+// an Encoder may be used to encode or decode an integer as a string.  The
+// produced strings will have the property that any set of numbers will have
+// the same lexical sorting and numeric sorting.
 type Encoder struct {
 	pos rune
 	neg rune
 }
 
+// NewEncoder creates a new lexnum Encoder.  We achieve
 func NewEncoder(pos rune, neg rune) *Encoder {
 	if pos < neg {
 		panic("positive lexnum rune must be of higher rank than negative lexnum rune")
 	}
+	if neg >= '0' {
+		panic("negative prefix must be lexically less than '0'")
+	}
+	if pos <= '9' {
+		panic("positive prefix must be lexically greather than '9'")
+	}
 	return &Encoder{pos: pos, neg: neg}
 }
 
+// Encodes an integer as a string.
 func (l Encoder) EncodeInt(i int) string {
 	if i == 0 {
 		return "0"
@@ -98,6 +119,7 @@ func (l Encoder) prefixCount(runes []rune) int {
 	return i
 }
 
+// Decodes a lexnum string, returning its original integer representation.
 func (l Encoder) DecodeInt(s string) (int, error) {
 	if s == "" {
 		return 0, fmt.Errorf("illegal Lexnum decode of empty string")

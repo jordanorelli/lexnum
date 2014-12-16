@@ -12,27 +12,27 @@ var lexNumTests = []struct {
 	out string
 }{
 	{0, "0"},
-	{1, "x1"},
-	{9, "x9"},
-	{10, "xx210"},
-	{99, "xx299"},
-	{100, "xx3100"},
-	{12345, "xx512345"},
-	{123456789, "xx9123456789"},
-	{1234567890, "xxx2101234567890"},
-	{-1, "o8"},
-	{-2, "o7"},
-	{-9, "o0"},
-	{-10, "oo789"},
-	{-11, "oo788"},
-	{-123, "oo6876"},
-	{-123456789, "oo0876543210"},
-	{-1234567890, "ooo7898765432109"},
+	{1, "=1"},
+	{9, "=9"},
+	{10, "==210"},
+	{99, "==299"},
+	{100, "==3100"},
+	{12345, "==512345"},
+	{123456789, "==9123456789"},
+	{1234567890, "===2101234567890"},
+	{-1, "-8"},
+	{-2, "-7"},
+	{-9, "-0"},
+	{-10, "--789"},
+	{-11, "--788"},
+	{-123, "--6876"},
+	{-123456789, "--0876543210"},
+	{-1234567890, "---7898765432109"},
 }
 
 func TestLexnum(t *testing.T) {
 	rand.Seed(time.Now().UnixNano())
-	e := NewEncoder('x', 'o')
+	e := NewEncoder('=', '-')
 	for _, test := range lexNumTests {
 		s := e.EncodeInt(test.in)
 		t.Logf("%d -> %s", test.in, test.out)
@@ -49,6 +49,28 @@ func TestLexnum(t *testing.T) {
 		}
 	}
 
+	// -150 to 150 test
+	nums, stringz := make([]int, 0, 301), make([]string, 0, 301)
+	for x := -150; x <= 150; x += 1 {
+		nums = append(nums, x)
+		stringz = append(stringz, e.EncodeInt(x))
+	}
+	sort.Strings(stringz)
+	sort.Ints(nums)
+	for i := 0; i < len(nums); i++ {
+		n, err := e.DecodeInt(stringz[i])
+		if err != nil {
+			t.Errorf("unable to decode our own input: %v", stringz[i])
+			continue
+		}
+		if n != nums[i] {
+			t.Errorf("sorting is broken in range test")
+			t.Log(stringz, "\n", nums)
+			break
+		}
+	}
+
+	// random test
 	runsize := 8
 	for runz := 0; runz < 4; runz += 1 {
 		nums, stringz := make([]int, runsize), make([]string, runsize)
